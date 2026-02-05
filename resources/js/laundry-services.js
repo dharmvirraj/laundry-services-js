@@ -1,67 +1,83 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const totalPriceEl = document.getElementById("total-price");
-    const addedItemsList = document.querySelector(".added-items-list");
-    const noItemsEl = document.querySelector(".no-items");
-    let items = [];
 
-    // Update the Added Items UI and Total Price
-    const updateUI = () => {
-        // Remove old dynamic rows
-        addedItemsList.querySelectorAll(".added-item-row.dynamic").forEach(el => el.remove());
+    const cartList = document.querySelector(".added-items-list");
+    const totalPrice = document.getElementById("total-price");
+    const noItems = document.querySelector(".no-items");
+
+    let items = JSON.parse(localStorage.getItem("cartItems")) || [];
+
+    const updateCart = () => {
+        const rows = document.querySelectorAll(".added-item-row");
+
+        for (let i = 0; i < rows.length; i++) {
+            rows[i].remove();
+        }
 
         let total = 0;
 
         if (items.length === 0) {
-            noItemsEl.style.display = "flex";
+            noItems.style.display = "flex";
         } else {
-            noItemsEl.style.display = "none";
+            noItems.style.display = "none";
 
-            // Add items dynamically
-            items.forEach((item, index) => {
-                total += item.price;
+            for (let i = 0; i < items.length; i++) {
+                total = total + items[i].price;
 
                 const row = document.createElement("div");
-                row.className = "added-item-row dynamic";
-                row.innerHTML = `
-                    <span class="sn">${index + 1}</span>
-                    <span class="service-name">${item.name}</span>
-                    <span class="service-price">₹${item.price.toFixed(2)}</span>
-                `;
-                addedItemsList.appendChild(row);
-            });
+                row.className = "added-item-row";
+
+                row.innerHTML =
+                    "<span class='sn'>" + (i + 1) + "</span>" +
+                    "<span class='service-name'>" + items[i].name + "</span>" +
+                    "<span class='service-price'>₹" + items[i].price.toFixed(2) + "</span>";
+
+                cartList.appendChild(row);
+            }
         }
 
-        totalPriceEl.textContent = `₹${total.toFixed(2)}`;
+        totalPrice.innerText = "₹" + total.toFixed(2)
+        localStorage.setItem("cartItems", JSON.stringify(items));
     };
 
-    // Toggle Add/Remove buttons visibility
-    const toggleButtons = (addBtn, removeBtn, showAdd) => {
-        addBtn.style.display = showAdd ? "flex" : "none";
-        removeBtn.style.display = showAdd ? "none" : "flex";
-    };
+    const services = document.querySelectorAll(".item-wrap");
 
-    document.querySelectorAll(".item-wrap").forEach(itemWrap => {
-        const addBtn = itemWrap.querySelector(".btn-add");
-        const removeBtn = itemWrap.querySelector(".btn-remove");
+    for (let i = 0; i < services.length; i++) {
 
-        const product = itemWrap.querySelector(".product-item p");
-        const priceEl = itemWrap.querySelector("strong");
+        const service = services[i];
+        const addBtn = service.querySelector(".btn-add");
+        const removeBtn = service.querySelector(".btn-remove");
 
-        const name = product.innerText.trim();
-        const price = parseFloat(priceEl.innerText.replace("₹", ""));
+        const name = service.querySelector(".product-item p").innerText.trim();
+        const price = parseFloat(
+            service.querySelector("strong").innerText.replace("₹", "")
+        );
 
-        addBtn.addEventListener("click", () => {
-            items.push({ name, price });
-            toggleButtons(addBtn, removeBtn, false);
-            updateUI();
+        for (let j = 0; j < items.length; j++) {
+            if (items[j].name === name) {
+                addBtn.style.display = "none";
+                removeBtn.style.display = "flex";
+            }
+        }
+
+        addBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            items = JSON.parse(localStorage.getItem("cartItems")) || [];
+            items.push({ name: name, price: price });
+            addBtn.style.display = "none";
+            removeBtn.style.display = "flex";
+            document.getElementById("errorMessage").style.display = "none";
+            updateCart();
         });
 
-        removeBtn.addEventListener("click", () => {
+        removeBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            items = JSON.parse(localStorage.getItem("cartItems")) || [];
             items = items.filter(item => item.name !== name);
-            toggleButtons(addBtn, removeBtn, true);
-            updateUI();
+            addBtn.style.display = "flex";
+            removeBtn.style.display = "none";
+            updateCart();
         });
-    });
+    }
 
-    noItemsEl.style.display = "flex";
+    updateCart();
 });

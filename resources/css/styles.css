@@ -599,14 +599,20 @@ section {
 
 .form-message {
     margin-top: var(--spacing-sm);
+    font-size: 12px;
+    font-weight: 500;
     color: var(--primary-green);
     display: none;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     gap: var(--spacing-xs);
 
 }
 
+.error {
+    color: #e11d48;
+    align-items: center;
+}
 
 .quality-desc-wrap {
     display: grid;
